@@ -15,7 +15,10 @@ export default function ForgotPasswordPage() {
     setLoading(true)
     setMessage('')
     setError('')
-    const redirectTo = `${window.location.origin}/auth/callback?next=/auth/reset-password`
+    const redirectBase = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`
+    const redirectUrl = new URL(redirectBase)
+    redirectUrl.searchParams.set('next', '/auth/reset-password')
+    const redirectTo = redirectUrl.toString()
     const { error: resetError } = await createClient().auth.resetPasswordForEmail(email, { redirectTo })
     if (resetError) setError('We could not send a reset email right now. Please try again.')
     else setMessage('If an account exists for that email, you will receive password reset instructions shortly.')
