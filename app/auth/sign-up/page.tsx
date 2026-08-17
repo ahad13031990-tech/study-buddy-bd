@@ -15,7 +15,11 @@ function signUpMessage(message: string) {
 export default function SignUpPage() {
   const [name, setName] = useState(''); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [message, setMessage] = useState(''); const [error, setError] = useState(''); const [loading, setLoading] = useState(false)
   async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setLoading(true); setError(''); setMessage('')
+    event.preventDefault(); setError(''); setMessage('')
+    if (!name.trim()) { setError('Enter your name.'); return }
+    if (!email.trim()) { setError('Enter your email address.'); return }
+    if (password.length < 6) { setError('Choose a password with at least 6 characters.'); return }
+    setLoading(true)
     const { data, error: authError } = await createClient().auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`, data: { full_name: name.trim() } } })
     if (authError) setError(signUpMessage(authError.message)); else setMessage(data.session ? 'Account created. You can now continue.' : 'Account created. Check your email to confirm your account.')
     setLoading(false)

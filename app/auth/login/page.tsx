@@ -28,7 +28,8 @@ export default function LoginPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!email.trim() || !password) { setError('Enter your email and password.'); return }
+    if (!email.trim()) { setError('Enter your email address.'); return }
+    if (!password) { setError('Enter your password.'); return }
     setLoading(true); setError('')
     const { error: authError } = await createClient().auth.signInWithPassword({ email: email.trim(), password })
     if (authError) { setError(authMessage(authError.message)); setLoading(false); return }
