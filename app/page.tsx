@@ -1,165 +1,64 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { ArrowRight, BarChart3, Bell, BrainCircuit, Check, FileQuestion, Flame, History, LayoutDashboard, Menu, MessageCircle, Send, Settings, Sparkles, Target, Trophy, Upload, X } from 'lucide-react'
-import { getQuestions, saveQuestion, type SavedQuestion } from '@/lib/storage/questions'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { ArrowRight, BarChart3, BrainCircuit, Check, ChevronDown, CircleHelp, FileQuestion, Languages, Menu, MessageCircle, Play, Sparkles, Target, Trophy, Upload, X, Zap } from 'lucide-react'
 
-type Solve = { answer: string; explanation: string; banglaExplanation: string; keyConcept: string; commonMistake: string; fallback?: boolean }
-type ChatMessage = { role: 'user' | 'assistant'; content: string }
-type QuizQuestion = { question: string; options: string[]; correctAnswer: number; explanation: string }
-const navItems = [['Dashboard', LayoutDashboard], ['Solve Question', BrainCircuit], ['AI Tutor', MessageCircle], ['Quiz', FileQuestion], ['History', History], ['Mistakes', Check], ['Progress', BarChart3], ['Settings', Settings]] as const
+const faqs = [
+  ['Is StudyBuddy free to use?', 'Yes. You can start with the core study tools for free and build a daily learning habit without a subscription.'],
+  ['Can it explain questions in Bangla?', 'Absolutely. StudyBuddy is built for Bangladesh students, with clear English and Bangla explanations whenever you need them.'],
+  ['Which subjects are supported?', 'Start with Physics, Mathematics, Chemistry, Biology, and any text-based question from your SSC, HSC, or university syllabus.'],
+  ['Is my study history private?', 'Yes. Your account history is private and protected by Supabase authentication.'],
+]
 
-export default function Page() {
-  const [active, setActive] = useState('Dashboard')
-  const [question, setQuestion] = useState('')
-  const [subject, setSubject] = useState('Physics')
-  const [level, setLevel] = useState('SSC')
-  const [result, setResult] = useState<Solve | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [history, setHistory] = useState<SavedQuestion[]>([])
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [image, setImage] = useState<string | null>(null)
-  const [followUp, setFollowUp] = useState('')
-  const [chat, setChat] = useState<ChatMessage[]>([])
-  const [tutorInput, setTutorInput] = useState('')
-  const [quizTopic, setQuizTopic] = useState('')
-  const [quiz, setQuiz] = useState<QuizQuestion[]>([])
-  const [quizIndex, setQuizIndex] = useState(0)
-  const [quizAnswers, setQuizAnswers] = useState<number[]>([])
-  const [quizDone, setQuizDone] = useState(false)
-  const [quizLoading, setQuizLoading] = useState(false)
-  const [mistakes, setMistakes] = useState<QuizQuestion[]>([])
-  const [file, setFile] = useState<File | null>(null)
-  const [user, setUser] = useState<{ email?: string; user_metadata?: { full_name?: string } } | null>(null)
-  const router = useRouter()
+export default function LandingPage() {
+  const [openFaq, setOpenFaq] = useState<number | null>(0)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-  useEffect(() => { const supabase = createClient(); supabase.auth.getUser().then(({ data }) => setUser(data.user)); getQuestions().then(setHistory).catch(() => setHistory([])); const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null)); return () => listener.subscription.unsubscribe() }, [])
-  const go = (name: string) => { setActive(name); setSidebarOpen(false) }
-  async function logout() { await createClient().auth.signOut(); window.location.assign('/auth/login') }
-  async function solve() {
-    if (!question.trim() && !image) { setError('Please enter a question or add an image.'); return }
-    setLoading(true); setError('')
-    try {
-      const response = await fetch('/api/solve', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, subject, educationLevel: level, language: 'en', image }) })
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'Unable to solve this question.')
-      setResult(data)
-      if (question.trim()) { const saved = await saveQuestion({ question, subject, result: data }); setHistory((items) => [saved, ...items]) }
-    } catch (e) { setError(e instanceof Error ? e.message : 'Network error. Please try again.') } finally { setLoading(false) }
-  }
-   async function sendChat(text: string) {
-    if (!text.trim()) return
+  return (
+    <main className="overflow-hidden bg-background text-foreground">
+      <nav className="fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-border/70 bg-card/90 px-4 py-3 shadow-sm backdrop-blur-xl sm:px-5">
+          <a href="#top" className="flex items-center gap-2.5 font-semibold tracking-tight"><span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Sparkles size={17} /></span>StudyBuddy</a>
+          <div className="hidden items-center gap-7 text-sm text-muted-foreground md:flex"><a href="#product" className="hover:text-foreground">Product</a><a href="#how" className="hover:text-foreground">How it works</a><a href="#faq" className="hover:text-foreground">FAQ</a></div>
+          <div className="hidden items-center gap-3 md:flex"><a href="/auth/login" className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">Log in</a><a href="/auth/sign-up" className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Get started <ArrowRight size={15} /></a></div>
+          <button aria-label="Open menu" onClick={() => setMobileOpen(!mobileOpen)} className="rounded-lg p-2 md:hidden">{mobileOpen ? <X size={20} /> : <Menu size={20} />}</button>
+        </div>
+        {mobileOpen && <div className="mx-auto mt-2 flex max-w-6xl flex-col gap-1 rounded-2xl border border-border bg-card p-3 shadow-lg md:hidden"><a onClick={() => setMobileOpen(false)} href="#product" className="rounded-lg px-3 py-2 text-sm">Product</a><a onClick={() => setMobileOpen(false)} href="#how" className="rounded-lg px-3 py-2 text-sm">How it works</a><a onClick={() => setMobileOpen(false)} href="#faq" className="rounded-lg px-3 py-2 text-sm">FAQ</a><a href="/auth/login" className="mt-1 rounded-lg bg-primary px-3 py-2.5 text-center text-sm font-semibold text-primary-foreground">Start learning</a></div>}
+      </nav>
 
-    const context = result
-      ? `Previous question: ${question || 'Question from screenshot'}
+      <section id="top" className="relative mx-auto max-w-6xl px-5 pb-20 pt-40 sm:px-8 lg:pb-28 lg:pt-48">
+        <div className="grid items-center gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+          <div className="max-w-xl">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary"><span className="size-1.5 rounded-full bg-primary" /> Built for students in Bangladesh</div>
+            <h1 className="text-balance text-5xl font-bold tracking-[-0.05em] sm:text-6xl lg:text-7xl">Study smarter.<br /><span className="text-primary">Feel ready.</span></h1>
+            <p className="mt-6 max-w-lg text-pretty text-lg leading-8 text-muted-foreground">Your AI study companion for turning confusing questions into clear understanding — one thoughtful step at a time.</p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row"><a href="/auth/sign-up" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/15">Start learning free <ArrowRight size={16} /></a><a href="#product" className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-3.5 text-sm font-semibold"><Play size={15} className="fill-current" /> See how it works</a></div>
+            <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground"><span className="flex items-center gap-1.5"><Check size={14} className="text-primary" /> No credit card</span><span className="flex items-center gap-1.5"><Check size={14} className="text-primary" /> English + Bangla</span><span className="flex items-center gap-1.5"><Check size={14} className="text-primary" /> SSC to university</span></div>
+          </div>
+          <DemoWorkspace />
+        </div>
+      </section>
 
-Previous answer: ${result.answer}
+      <div className="border-y border-border bg-card/60"><div className="mx-auto grid max-w-6xl gap-6 px-5 py-6 sm:grid-cols-3 sm:px-8"><Value icon={BrainCircuit} title="Understand, don't memorize" text="Step-by-step explanations that actually stick." /><Value icon={Languages} title="Made for your context" text="Clear learning in English or Bangla." /><Value icon={Target} title="Build your momentum" text="Small wins that become a real habit." /></div></div>
 
-Previous explanation: ${result.explanation}
+      <section id="product" className="mx-auto max-w-6xl px-5 py-24 sm:px-8 lg:py-32"><div className="max-w-2xl"><p className="text-sm font-semibold text-primary">A better way to study</p><h2 className="mt-3 text-balance text-4xl font-bold tracking-[-0.04em] sm:text-5xl">Everything you need to make progress.</h2><p className="mt-5 text-lg leading-8 text-muted-foreground">Not another answer machine. StudyBuddy helps you build the understanding and confidence to solve the next question on your own.</p></div><div className="mt-14 grid gap-5 lg:grid-cols-2"><FeatureCard icon={BrainCircuit} eyebrow="01 / Understand" title="Solve the question in front of you." text="Type it, paste it, or upload a screenshot. Get a clear answer with the reasoning behind it, not just a final number." className="bg-primary text-primary-foreground" /><FeatureCard icon={MessageCircle} eyebrow="02 / Go deeper" title="Ask the follow-up that is on your mind." text="Keep the conversation going with an AI tutor that meets you where you are and explains things simply." /><FeatureCard icon={FileQuestion} eyebrow="03 / Practice" title="Turn understanding into recall." text="Generate focused quizzes on any topic, then see exactly where your thinking needs more work." /><FeatureCard icon={BarChart3} eyebrow="04 / Keep going" title="See your progress become visible." text="Your history, mistakes, and small wins come together to make your next study session more intentional." /></div></section>
 
-Previous Bangla explanation: ${result.banglaExplanation}
+      <section className="bg-muted/60"><div className="mx-auto grid max-w-6xl items-center gap-14 px-5 py-24 sm:px-8 lg:grid-cols-2 lg:py-32"><div><p className="text-sm font-semibold text-primary">For the way you learn</p><h2 className="mt-3 text-balance text-4xl font-bold tracking-[-0.04em] sm:text-5xl">The help you wish you had at 11pm.</h2><p className="mt-5 text-lg leading-8 text-muted-foreground">When the textbook feels too dense and the group chat is quiet, StudyBuddy is there to make the next step feel possible.</p><div className="mt-8 flex flex-col gap-4"><Bullet text="Explanations that match your education level" /><Bullet text="Bangla support when English gets in the way" /><Bullet text="A private notebook for every question you solve" /><Bullet text="Practice that focuses on your actual weak spots" /></div></div><div className="relative rounded-3xl border border-border bg-card p-5 shadow-xl shadow-primary/5 sm:p-7"><div className="mb-5 flex items-center justify-between"><div className="flex items-center gap-2 text-sm font-semibold"><span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Sparkles size={15} /></span>Study session</div><span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">Today</span></div><div className="rounded-2xl border border-border bg-background p-5"><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your focus</p><h3 className="mt-2 text-xl font-bold">Newton's second law</h3><div className="mt-5 h-2 overflow-hidden rounded-full bg-muted"><div className="h-full w-3/4 rounded-full bg-primary" /></div><div className="mt-2 flex justify-between text-xs text-muted-foreground"><span>3 of 4 questions</span><span>75%</span></div></div><div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded-2xl bg-primary/10 p-4"><Trophy size={18} className="text-primary" /><p className="mt-3 text-2xl font-bold">12</p><p className="text-xs text-muted-foreground">Questions solved</p></div><div className="rounded-2xl bg-muted p-4"><Zap size={18} className="text-primary" /><p className="mt-3 text-2xl font-bold">4 day</p><p className="text-xs text-muted-foreground">Study streak</p></div></div></div></div></section>
 
-Student follow-up: ${text}`
-      : text
+      <section id="how" className="mx-auto max-w-6xl px-5 py-24 sm:px-8 lg:py-32"><div className="text-center"><p className="text-sm font-semibold text-primary">Simple by design</p><h2 className="mt-3 text-4xl font-bold tracking-[-0.04em] sm:text-5xl">From stuck to steady.</h2></div><div className="mt-14 grid gap-10 md:grid-cols-3"><Step n="01" title="Bring your question" text="Start with the thing you don't understand. No perfect wording required." /><Step n="02" title="Learn the why" text="Get an explanation in the language and level that works for you." /><Step n="03" title="Make it yours" text="Ask follow-ups, take a quiz, and come back stronger next time." /></div></section>
 
-    const next = [...chat, { role: 'user' as const, content: text }]
-    setChat(next)
-    setFollowUp('')
-    setTutorInput('')
-    setLoading(true)
-    setError('')
+      <section id="faq" className="bg-card"><div className="mx-auto max-w-3xl px-5 py-24 sm:px-8 lg:py-32"><div className="text-center"><CircleHelp className="mx-auto text-primary" size={28} /><h2 className="mt-4 text-4xl font-bold tracking-[-0.04em]">Questions, answered.</h2></div><div className="mt-12 divide-y divide-border rounded-2xl border border-border">{faqs.map(([q, a], index) => <div key={q} className="px-5 sm:px-6"><button onClick={() => setOpenFaq(openFaq === index ? null : index)} className="flex w-full items-center justify-between gap-4 py-5 text-left font-semibold"><span>{q}</span><ChevronDown size={18} className={`shrink-0 text-muted-foreground transition-transform ${openFaq === index ? 'rotate-180' : ''}`} /></button>{openFaq === index && <p className="pb-5 pr-8 text-sm leading-7 text-muted-foreground">{a}</p>}</div>)}</div></div></section>
 
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          messages: [
-            { role: 'user', content: context },
-            ...next
-          ]
-        })
-      })
+      <section className="px-5 py-20 sm:px-8"><div className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-primary px-6 py-16 text-center text-primary-foreground sm:px-12"><Sparkles className="mx-auto opacity-70" size={25} /><h2 className="mx-auto mt-5 max-w-2xl text-balance text-4xl font-bold tracking-[-0.04em] sm:text-5xl">Your next breakthrough starts with one question.</h2><p className="mx-auto mt-5 max-w-xl text-base leading-7 text-primary-foreground/75">Join students building a calmer, clearer way to learn.</p><a href="/auth/sign-up" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary-foreground px-5 py-3.5 text-sm font-semibold text-primary">Start learning free <ArrowRight size={16} /></a></div></section>
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Chat failed.')
-      }
-
-      setChat([...next, { role: 'assistant', content: data.message }])
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Chat failed.')
-    } finally {
-      setLoading(false)
-    }
-  }
-  function Header({ title, subtitle }: { title: string; subtitle: string }) { return <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="mb-2 text-sm font-medium text-primary">Friday, August 15, 2026</p><h1 className="text-3xl font-bold tracking-tight lg:text-4xl">{title}</h1><p className="mt-2 text-sm text-muted-foreground">{subtitle}</p></div><button onClick={() => go('Solve Question')} className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Solve a question <ArrowRight size={15} /></button></div> }
-  async function generateQuiz() {
-    if (!quizTopic.trim()) {
-      setError('Please enter a quiz topic.')
-      return
-    }
-
-    setQuizLoading(true)
-    setError('')
-    setQuiz([])
-    setQuizIndex(0)
-    setQuizAnswers([])
-    setQuizDone(false)
-
-    try {
-      const response = await fetch('/api/quiz', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ topic: quizTopic })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Unable to generate quiz.')
-      }
-
-      setQuiz(data.questions || [])
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unable to generate quiz.')
-    } finally {
-      setQuizLoading(false)
-    }
-  }
-
-  function DashboardView() { return <><Header title={`Good morning, ${user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Student'}`} subtitle={user?.email ? `Signed in as ${user.email}` : 'Ready to make progress today?'} /><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><Stat label="Study streak" value={history.length ? '1 day' : '0 days'} icon={Flame} /><Stat label="Questions solved" value={String(history.length)} icon={Trophy} /><Stat label="Quiz attempts" value="0" icon={Target} /><Stat label="Study time" value="0m" icon={BarChart3} /></div><div className="mt-8 grid gap-6 xl:grid-cols-[1.3fr_0.7fr]"><section className="rounded-2xl border border-border bg-card p-6"><div className="mb-5 flex items-center gap-2 text-sm font-semibold text-primary"><Sparkles size={16} /> AI Study Assistant</div><textarea value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="e.g. What is Newton's second law?" className="min-h-32 w-full resize-none rounded-xl border border-input bg-background p-4 text-sm outline-none focus:border-primary" /><button onClick={solve} disabled={loading} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50">{loading ? 'Solving…' : 'Solve with AI'} <ArrowRight size={15} /></button></section><section className="rounded-2xl bg-primary p-6 text-primary-foreground"><p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">Today’s focus</p><h2 className="mt-2 text-2xl font-bold">Build a study habit</h2><p className="mt-4 text-sm text-primary-foreground/75">Solve one question, then ask a follow-up to deepen your understanding.</p><button onClick={() => go('Quiz')} className="mt-6 w-full rounded-lg bg-primary-foreground px-3.5 py-2.5 text-sm font-semibold text-primary">Start a quiz</button></section></div><HistoryList /></> }
-  function SolveView() { return <><Header title="Solve Question" subtitle="Turn confusion into confidence, one step at a time." /><div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]"><section className="rounded-2xl border border-border bg-card p-6"><div className="flex flex-wrap gap-3"><select value={subject} onChange={(e) => setSubject(e.target.value)} className="rounded-lg border border-input bg-background px-3 py-2 text-sm"><option>Physics</option><option>Mathematics</option><option>Chemistry</option><option>Biology</option></select><select value={level} onChange={(e) => setLevel(e.target.value)} className="rounded-lg border border-input bg-background px-3 py-2 text-sm"><option>SSC</option><option>HSC</option><option>University</option></select></div><textarea value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Paste your question here…" className="mt-5 min-h-48 w-full resize-y rounded-xl border border-input bg-background p-4 text-sm outline-none focus:border-primary" /><label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-muted-foreground"><Upload size={16} /> Add screenshot<input type="file" accept="image/*" className="hidden" onChange={(e) => { const selected = e.target.files?.[0]; if (!selected) return; setFile(selected); const reader = new FileReader(); reader.onload = () => setImage(String(reader.result)); reader.readAsDataURL(selected) }} /></label>{image && <div className="mt-4 flex items-center gap-3"><img src={image} alt="Uploaded question" className="size-20 rounded-lg object-cover" /><button onClick={() => { setImage(null); setFile(null) }} className="text-sm text-destructive">Remove image</button></div>}<button onClick={solve} disabled={loading} className="mt-5 w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50">{loading ? 'Thinking…' : 'Solve with AI'}</button></section><Result /></div></> }
-  function Result() { return <section className="rounded-2xl border border-border bg-card p-6"><h2 className="font-bold">AI result</h2>{!result ? <p className="mt-4 text-sm text-muted-foreground">Your answer will appear here.</p> : <div className="mt-5 flex flex-col gap-5 text-sm"><Answer label="Answer" value={result.answer} /><Answer label="Explanation" value={result.explanation} /><Answer label="Bangla explanation" value={result.banglaExplanation} /><Answer label="Key concept" value={result.keyConcept} /><Answer label="Common mistake" value={result.commonMistake} /><div className="border-t border-border pt-4"><div className="flex gap-2"><input value={followUp} onChange={(e) => setFollowUp(e.target.value)} placeholder="Ask a follow-up…" className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2" /><button onClick={() => sendChat(followUp)} className="rounded-lg bg-primary px-3 text-primary-foreground"><Send size={16} /></button></div>{chat.map((message, index) => <p key={index} className="mt-3 rounded-lg bg-muted p-3"><strong>{message.role === 'user' ? 'You' : 'StudyBuddy'}:</strong> {message.content}</p>)}</div></div>}</section> }
-  function TutorView() { return <><Header title="AI Tutor" subtitle="Ask a question and learn through conversation." /><section className="mx-auto max-w-3xl rounded-2xl border border-border bg-card p-6"><div className="flex min-h-80 flex-col gap-3">{chat.length === 0 && <p className="m-auto text-center text-sm text-muted-foreground">Start with a question or choose a quick action.</p>}{chat.map((message, index) => <div key={index} className={`max-w-[85%] rounded-xl p-3 text-sm ${message.role === 'user' ? 'self-end bg-primary text-primary-foreground' : 'bg-muted'}`}>{message.content}</div>)}{loading && <p className="text-sm text-muted-foreground">Tutor is thinking…</p>}</div><div className="mt-5 flex flex-wrap gap-2">{['Explain this simply', 'Give me an example', 'Teach me step by step', 'Quiz me', 'Explain in Bangla'].map((action) => <button key={action} onClick={() => sendChat(action)} className="rounded-full border border-border px-3 py-2 text-xs">{action}</button>)}</div><div className="mt-4 flex gap-2"><input value={tutorInput} onChange={(e) => setTutorInput(e.target.value)} placeholder="Ask your tutor…" className="min-w-0 flex-1 rounded-xl border border-input bg-background px-4 py-3 text-sm" /><button onClick={() => sendChat(tutorInput)} className="rounded-xl bg-primary px-4 text-primary-foreground"><Send size={17} /></button></div></section></> }
-  const current = quiz[quizIndex]
-  const score = quiz.reduce((total, item, index) => total + (quizAnswers[index] === item.correctAnswer ? 1 : 0), 0)
-
-  function QuizView() { return <><Header title="Quiz Generator" subtitle="Practice actively and see what you know." /><section className="rounded-2xl border border-border bg-card p-6">{!quiz.length ? <div className="flex gap-3"><input value={quizTopic} onChange={(e) => setQuizTopic(e.target.value)} placeholder="Topic, e.g. Newton's laws" className="min-w-0 flex-1 rounded-xl border border-input bg-background px-4 py-3 text-sm" /><button onClick={generateQuiz} disabled={quizLoading} className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">{quizLoading ? 'Generating…' : 'Generate Quiz'}</button></div> : quizDone ? <div className="py-10 text-center"><Trophy className="mx-auto text-primary" size={40} /><h2 className="mt-4 text-3xl font-bold">{score} / {quiz.length}</h2><p className="mt-2 text-sm text-muted-foreground">Quiz complete.</p><button onClick={() => setQuiz([])} className="mt-5 rounded-xl border border-border px-4 py-2 text-sm">Create another quiz</button></div> : <><div className="mb-6 flex justify-between text-sm"><span>Question {quizIndex + 1} of {quiz.length}</span><span>{Math.round((quizIndex / quiz.length) * 100)}%</span></div><h2 className="text-xl font-bold">{current.question}</h2><div className="mt-5 grid gap-3">{current.options.map((option, index) => <button key={option} onClick={() => { setQuizAnswers((answers) => { const next = [...answers]; next[quizIndex] = index; return next }); if (index !== current.correctAnswer && !mistakes.some((m) => m.question === current.question)) setMistakes((items) => [...items, current]) }} className={`rounded-xl border p-3 text-left text-sm ${quizAnswers[quizIndex] === index ? 'border-primary bg-primary/10' : ''}`}>{option}</button>)}</div><button disabled={quizAnswers[quizIndex] === undefined} onClick={() => quizIndex === quiz.length - 1 ? setQuizDone(true) : setQuizIndex((index) => index + 1)} className="mt-6 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50">{quizIndex === quiz.length - 1 ? 'Submit quiz' : 'Next question'}</button></>}</section></> }
-  function HistoryView() { return <><Header title="History" subtitle="Review every question you have solved." /><HistoryList /></> }
-  function HistoryList() { return <div className="mt-8 flex flex-col gap-3">{history.length === 0 ? <p className="rounded-xl bg-muted p-5 text-sm text-muted-foreground">No saved questions yet. Solve one to see it here.</p> : history.map((item) => <button key={item.id} onClick={() => { setQuestion(item.question); setSubject(item.subject); setResult(item.result); go('Solve Question') }} className="rounded-xl border border-border bg-card p-4 text-left hover:border-primary"><span className="text-xs font-semibold text-primary">{item.subject}</span><p className="mt-2 font-medium">{item.question}</p><p className="mt-1 text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleString()}</p></button>)}</div> }
-  function MistakesView() { return <><Header title="Mistake Notebook" subtitle="Review questions you got wrong and learn from them." /><section className="rounded-2xl border border-border bg-card p-6">{mistakes.length === 0 ? <p className="text-sm text-muted-foreground">No mistakes yet. Complete a quiz and your wrong answers will appear here.</p> : <div className="flex flex-col gap-4">{mistakes.map((item, index) => <div key={index} className="rounded-xl border border-border p-5"><p className="font-semibold">{item.question}</p><div className="mt-3 text-sm text-muted-foreground"><p><strong>Correct answer:</strong> {item.options[item.correctAnswer]}</p><p className="mt-2"><strong>Explanation:</strong> {item.explanation}</p></div></div>)}</div>}</section></> }
-
-  function ProgressView() { return <><Header title="Progress" subtitle="Your progress is based on real activity in this browser." /><div className="grid gap-4 sm:grid-cols-3"><Stat label="Questions solved" value={String(history.length)} icon={Trophy} /><Stat label="Quiz attempts" value="0" icon={Target} /><Stat label="Study streak" value={history.length ? '1 day' : '0 days'} icon={Flame} /></div></> }
-  function SettingsView() { return <><Header title="Settings" subtitle="Configure your StudyBuddy experience." /><section className="max-w-2xl rounded-2xl border border-border bg-card p-6"><h2 className="font-bold">Profile</h2><div className="mt-5 grid gap-4 sm:grid-cols-2"><label className="text-sm">Name<input defaultValue="Arif Rahman" className="mt-2 w-full rounded-lg border border-input bg-background p-3" /></label><label className="text-sm">Education level<select value={level} onChange={(e) => setLevel(e.target.value)} className="mt-2 w-full rounded-lg border border-input bg-background p-3"><option>SSC</option><option>HSC</option><option>University</option></select></label></div><p className="mt-6 rounded-lg bg-muted p-3 text-xs text-muted-foreground">Your history is private to this account and protected by Supabase.</p></section></> }
-  const content = active === 'Dashboard' ? DashboardView() : active === 'Solve Question' ? SolveView() : active === 'AI Tutor' ? TutorView() : active === 'Quiz' ? QuizView() : active === 'History' ? HistoryView() : active === 'Mistakes' ? MistakesView() : active === 'Progress' ? ProgressView() : active === 'Settings' ? SettingsView() : DashboardView();
-
-
-  return <main className="min-h-screen bg-background text-foreground"><div className="flex min-h-screen"><aside className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-border bg-card px-5 py-6 transition-transform lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}><div className="mb-10 flex items-center justify-between px-2"><div className="flex items-center gap-2.5"><div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Sparkles size={18} /></div><p className="font-semibold">StudyBuddy</p></div><button onClick={() => setSidebarOpen(false)} className="lg:hidden" aria-label="Close menu"><X size={18} /></button></div><nav className="flex flex-col gap-1">{navItems.map(([label, Icon]) => <button key={label} onClick={() => go(label)} className={`flex items-center gap-3 rounded-xl px-3.5 py-3 text-left text-sm font-medium ${active === label ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}><Icon size={18} />{label}</button>)}</nav><div className="mt-auto rounded-2xl bg-muted p-4 text-xs text-muted-foreground"><span className="block truncate">{user?.email}</span><button onClick={() => go('Settings')} className="mt-2 font-semibold text-primary">Configure settings</button><button onClick={logout} className="mt-3 block font-semibold text-destructive">Log out</button></div></aside>{sidebarOpen && <button aria-label="Close navigation" onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-30 bg-foreground/20 lg:hidden" />}<section className="min-w-0 flex-1"><header className="flex h-20 items-center justify-between border-b border-border px-5 lg:px-10"><button onClick={() => setSidebarOpen(true)} className="lg:hidden" aria-label="Open menu"><Menu size={21} /></button><div className="hidden text-sm text-muted-foreground md:block">Study smarter, one question at a time.</div><div className="flex items-center gap-3"><span className="hidden text-xs text-muted-foreground sm:block">{user?.email}</span><button aria-label="Log out" onClick={async () => { await createClient().auth.signOut(); router.replace('/auth/login') }} className="rounded-lg border border-border px-3 py-2 text-xs font-semibold">Log out</button><button aria-label="Notifications"><Bell size={18} /></button></div></header><div className="mx-auto max-w-7xl px-5 py-8 lg:px-10">{error && <div role="alert" className="mb-5 flex justify-between rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}<button onClick={() => setError('')}><X size={16} /></button></div>}{content}</div></section></div></main>
+      <footer className="border-t border-border"><div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-center md:justify-between"><div><a href="#top" className="flex items-center gap-2 font-semibold"><span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Sparkles size={15} /></span>StudyBuddy</a><p className="mt-2 text-sm text-muted-foreground">Learn smarter, not harder.</p></div><div className="flex flex-wrap gap-5 text-sm text-muted-foreground"><a href="#product" className="hover:text-foreground">Product</a><a href="#faq" className="hover:text-foreground">FAQ</a><a href="/privacy" className="hover:text-foreground">Privacy</a><a href="/terms" className="hover:text-foreground">Terms</a></div><p className="text-xs text-muted-foreground">© 2026 StudyBuddy</p></div></footer>
+    </main>
+  )
 }
-function Stat({ label, value, icon: Icon }: { label: string; value: string; icon: typeof Flame }) { return <div className="rounded-2xl border border-border bg-card p-5 shadow-sm"><div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icon size={18} /></div><p className="mt-5 text-xs text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-bold">{value}</p></div> }
-function Answer({ label, value }: { label: string; value: string }) { return <div><p className="font-semibold text-primary">{label}</p><p className="mt-1 leading-6 text-muted-foreground">{value}</p></div> }
 
-
-
-
-
-
-
-
-
+function DemoWorkspace() { return <div className="relative mx-auto w-full max-w-xl"><div className="absolute -inset-6 -z-10 rounded-full bg-primary/10 blur-3xl" /><div className="rounded-3xl border border-border bg-card p-3 shadow-2xl shadow-primary/10 sm:p-4"><div className="flex items-center gap-2 border-b border-border px-2 pb-3"><span className="size-2 rounded-full bg-destructive/60" /><span className="size-2 rounded-full bg-amber/70" /><span className="size-2 rounded-full bg-primary/60" /><span className="ml-3 text-xs text-muted-foreground">StudyBuddy / Solve Question</span></div><div className="grid gap-4 p-3 sm:grid-cols-[0.8fr_1.2fr] sm:p-5"><div className="rounded-2xl bg-muted p-4"><div className="flex items-center justify-between"><span className="text-xs font-semibold text-primary">Physics</span><span className="rounded-md bg-card px-2 py-1 text-[10px] text-muted-foreground">SSC</span></div><p className="mt-5 text-sm font-semibold leading-6">What is the acceleration of a 2kg object when a force of 10N acts on it?</p><div className="mt-5 flex items-center gap-2 text-xs text-muted-foreground"><Upload size={13} /> Add screenshot</div><button className="mt-6 w-full rounded-lg bg-primary py-2.5 text-xs font-semibold text-primary-foreground">Solve with AI <ArrowRight className="ml-1 inline" size={13} /></button></div><div className="rounded-2xl border border-border p-4"><div className="flex items-center gap-2 text-xs font-semibold text-primary"><Sparkles size={14} /> AI result</div><p className="mt-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Answer</p><p className="mt-2 text-xl font-bold">5 m/s²</p><div className="mt-5 border-t border-border pt-4"><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Explanation</p><p className="mt-2 text-xs leading-5 text-muted-foreground">Using Newton's second law: force equals mass times acceleration. So acceleration is 10 ÷ 2 = 5 m/s².</p></div><div className="mt-5 rounded-lg bg-primary/10 px-3 py-2 text-xs text-primary">Ask a follow-up →</div></div></div></div></div> }
+function Value({ icon: Icon, title, text }: { icon: typeof BrainCircuit; title: string; text: string }) { return <div className="flex gap-3"><Icon className="mt-0.5 shrink-0 text-primary" size={20} /><div><p className="text-sm font-semibold">{title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{text}</p></div></div> }
+function FeatureCard({ icon: Icon, eyebrow, title, text, className = '' }: { icon: typeof BrainCircuit; eyebrow: string; title: string; text: string; className?: string }) { return <div className={`min-h-64 rounded-3xl border border-border p-7 ${className || 'bg-card'}`}><Icon size={23} /><p className="mt-12 text-xs font-semibold uppercase tracking-widest opacity-60">{eyebrow}</p><h3 className="mt-3 max-w-md text-2xl font-bold tracking-tight">{title}</h3><p className="mt-3 max-w-md text-sm leading-6 opacity-70">{text}</p></div> }
+function Bullet({ text }: { text: string }) { return <div className="flex items-center gap-3 text-sm"><span className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-primary"><Check size={13} /></span>{text}</div> }
+function Step({ n, title, text }: { n: string; title: string; text: string }) { return <div className="relative border-t-2 border-primary pt-5"><span className="font-mono text-sm font-semibold text-primary">{n}</span><h3 className="mt-5 text-xl font-bold">{title}</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">{text}</p></div> }
 
