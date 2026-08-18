@@ -38,12 +38,42 @@ export default function DashboardPage() {
   const router = useRouter()
   const [loggingOut, setLoggingOut] = useState(false)
   const [mobileMenu, setMobileMenu] = useState(false)
-
+const [question, setQuestion] = useState('')
+const [loading, setLoading] = useState(false)
   async function handleLogout() {
     setLoggingOut(true)
     await createClient().auth.signOut()
     router.replace('/login')
     router.refresh()
+async function handleSolve() {
+  if (!question.trim() || loading) return
+
+  setLoading(true)
+
+  try {
+    const response = await fetch('/api/solve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question: question.trim(),
+        language: 'en',
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      alert(data.error || 'Unable to solve this question.')
+      return
+    }
+
+    alert(data.answer || data.explanation || JSON.stringify(data))
+  } catch {
+    alert('Something went wrong. Please try again.')
+  } finally {
+    setLoading(false)
+  }
+}
   }
 
   return (
