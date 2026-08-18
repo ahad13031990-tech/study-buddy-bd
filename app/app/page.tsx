@@ -45,6 +45,7 @@ const [loading, setLoading] = useState(false)
     await createClient().auth.signOut()
     router.replace('/login')
     router.refresh()
+  }
 async function handleSolve() {
   if (!question.trim() || loading) return
 
@@ -74,7 +75,7 @@ async function handleSolve() {
     setLoading(false)
   }
 }
-  }
+  
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#0a0b12] text-white">
@@ -102,7 +103,12 @@ async function handleSolve() {
           </section>
 
           <section className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.7fr)]">
-            <div className="relative overflow-hidden rounded-[28px] border border-[#7656ff]/35 bg-[linear-gradient(135deg,rgba(118,86,255,0.22),rgba(20,22,37,0.9)_55%)] p-6 sm:p-8"><div className="absolute -right-20 -top-24 size-72 rounded-full border border-[#9181ff]/10" /><div className="absolute -right-8 -top-12 size-48 rounded-full border border-[#9181ff]/10" /><div className="relative"><div className="flex items-start justify-between"><div><div className="mb-5 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#b4aaff]"><Sparkles size={14} /> AI workspace</div><h2 className="max-w-xl text-2xl font-semibold tracking-tight sm:text-3xl">What are you working through?</h2><p className="mt-3 max-w-md text-sm leading-6 text-white/50">Ask anything. StudyBuddy turns confusion into a clear next step.</p></div><button type="button" aria-label="More workspace options" className="text-white/35"><MoreHorizontal size={20} /></button></div><div className="mt-8 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#080912]/40 px-4 py-3"><span className="text-sm text-white/35">Ask a question about your studies...</span><button type="button" aria-label="Start asking" className="ml-auto flex size-9 items-center justify-center rounded-xl bg-[#7656ff] text-white shadow-lg shadow-[#7656ff]/30"><ArrowUpRight size={17} /></button></div><div className="mt-4 flex flex-wrap gap-2"><button className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/55 hover:bg-white/10">Explain a concept</button><button className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/55 hover:bg-white/10">Solve a problem</button><button className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/55 hover:bg-white/10">Make a study plan</button></div></div></div>
+            <div className="relative overflow-hidden rounded-[28px] border border-[#7656ff]/35 bg-[linear-gradient(135deg,rgba(118,86,255,0.22),rgba(20,22,37,0.9)_55%)] p-6 sm:p-8"><div className="absolute -right-20 -top-24 size-72 rounded-full border border-[#9181ff]/10" /><div className="absolute -right-8 -top-12 size-48 rounded-full border border-[#9181ff]/10" /><div className="relative"><div className="flex items-start justify-between"><div><div className="mb-5 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#b4aaff]"><Sparkles size={14} /> AI workspace</div><h2 className="max-w-xl text-2xl font-semibold tracking-tight sm:text-3xl">What are you working through?</h2><p className="mt-3 max-w-md text-sm leading-6 text-white/50">Ask anything. StudyBuddy turns confusion into a clear next step.</p></div><button type="button" aria-label="More workspace options" className="text-white/35"><MoreHorizontal size={20} /></button></div><div className="mt-8 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#080912]/40 px-4 py-3"> <input
+  value={question}
+  onChange={(e) => setQuestion(e.target.value)}
+  placeholder="Ask a question about your studies..."
+  className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
+/><button type="button" aria-label="Start asking" className="ml-auto flex size-9 items-center justify-center rounded-xl bg-[#7656ff] text-white shadow-lg shadow-[#7656ff]/30"><ArrowUpRight size={17} /></button></div><div className="mt-4 flex flex-wrap gap-2"><button className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/55 hover:bg-white/10">Explain a concept</button><button className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/55 hover:bg-white/10">Solve a problem</button><button className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/55 hover:bg-white/10">Make a study plan</button></div></div></div>
 
             <div className="rounded-[28px] border border-white/10 bg-white/[0.035] p-6"><div className="flex items-center justify-between"><p className="text-sm font-medium text-white/65">Today&apos;s focus</p><button type="button" aria-label="More focus options" className="text-white/30"><MoreHorizontal size={18} /></button></div><div className="flex items-center gap-6 py-7"><div className="relative flex size-28 items-center justify-center rounded-full" style={{ background: 'conic-gradient(#7656ff 0 68%, rgba(255,255,255,.08) 68% 100%)' }}><div className="flex size-[88px] flex-col items-center justify-center rounded-full bg-[#11121c]"><span className="text-2xl font-semibold">68%</span><span className="text-[10px] text-white/35">complete</span></div></div><div><p className="text-lg font-semibold">Algebra basics</p><p className="mt-1 text-xs leading-5 text-white/40">12 of 18 questions<br />about 24 min left</p></div></div><button type="button" className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 py-3 text-sm font-semibold transition hover:bg-white/15"><Play size={14} fill="currentColor" /> Continue session</button></div>
           </section>
