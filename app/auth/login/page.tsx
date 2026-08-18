@@ -35,7 +35,7 @@ export default function LoginPage() {
     if (authError) { setError(authMessage(authError.message)); setLoading(false); return }
     if (rememberMe) window.localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim())
     else window.localStorage.removeItem(REMEMBERED_EMAIL_KEY)
-    window.location.assign('/')
+    window.location.assign('/app')
   }
 
   return <AuthShell title="Welcome back" subtitle="Sign in to continue your StudyBuddy journey.">
@@ -51,3 +51,4 @@ export default function LoginPage() {
 }
 
 function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) { return <main className="flex min-h-screen items-center justify-center bg-background px-5 py-10 text-foreground"><section className="w-full max-w-md rounded-2xl border border-border bg-card p-7 shadow-sm"><div className="mb-8 flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">S</div><span className="font-semibold">StudyBuddy</span></div><h1 className="text-3xl font-bold tracking-tight">{title}</h1><p className="mt-2 text-sm text-muted-foreground">{subtitle}</p><div className="mt-7">{children}</div></section></main> }
+
