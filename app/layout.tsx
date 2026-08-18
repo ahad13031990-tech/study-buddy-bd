@@ -3,23 +3,16 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'StudyBuddy — Learn smarter, not harder',
-  description: 'An AI-powered study companion for students in Bangladesh. Solve questions, build confidence, and make progress every day.',
-  generator: 'v0.app',
+  title: 'StudyBuddy | AI Study Companion for Students',
+  description: 'StudyBuddy is an AI-powered study companion for students. Solve questions, learn with an AI tutor, practice quizzes, and track your progress.',
+  applicationName: 'StudyBuddy',
+  generator: 'Next.js',
+  keywords: ['StudyBuddy', 'AI study companion', 'AI tutor', 'question solver', 'quiz generator', 'student learning'],
   icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
+      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
     ],
     apple: '/apple-icon.png',
   },

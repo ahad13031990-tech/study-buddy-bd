@@ -1,9 +1,80 @@
-import { createClient } from '@/lib/supabase/client'
+import { supabase } from '@/lib/supabase/client'
 
-export type SavedQuestion = { id: string; question: string; subject: string; createdAt: string; result: { answer: string; explanation: string; banglaExplanation: string; keyConcept: string; commonMistake: string } }
+export type SavedQuestion = {
+  id: string
+  question: string
+  subject: string
+  createdAt: string
+  result: {
+    answer: string
+    explanation: string
+    banglaExplanation: string
+    keyConcept: string
+    commonMistake: string
+  }
+}
 
-type Row = { id: string; question: string; subject: string; result: SavedQuestion['result']; created_at: string }
-function mapRow(row: Row): SavedQuestion { return { id: row.id, question: row.question, subject: row.subject, result: row.result, createdAt: row.created_at } }
-export async function getQuestions(): Promise<SavedQuestion[]> { const { data, error } = await createClient().from('saved_questions').select('id, question, subject, result, created_at').order('created_at', { ascending: false }); if (error) throw error; return (data as Row[]).map(mapRow) }
-export async function saveQuestion(question: Omit<SavedQuestion, 'id' | 'createdAt'>) { const { data, error } = await createClient().from('saved_questions').insert({ question: question.question, subject: question.subject, result: question.result, user_id: (await createClient().auth.getUser()).data.user?.id }).select('id, question, subject, result, created_at').single(); if (error) throw error; return mapRow(data as Row) }
-export async function deleteQuestion(id: string) { const { error } = await createClient().from('saved_questions').delete().eq('id', id); if (error) throw error }
+export async function getQuestions(): Promise<SavedQuestion[]> {
+  const { data } = await supabase
+    .from('questions')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  return (data || []).map((q) => ({
+    id: q.id,
+    question: q.question,
+    subject: q.subject || '',
+    createdAt: q.created_at,
+    result: q.result,
+  }))
+}
+
+export async function saveQuestion(
+  question: Omit<SavedQuestion, 'id' | 'createdAt'>
+): Promise<SavedQuestion | null> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data, error } = await supabase
+    .from('questions')
+    .insert({
+      user_id: user.id,
+      question: question.question,
+      subject: question.subject,
+      result: question.result,
+    })
+    .select()
+    .single()
+
+  if (error || !data) return null
+
+  return {
+    id: data.id,
+    question: data.question,
+    subject: data.subject || '',
+    createdAt: data.created_at,
+    result: data.result,
+  }
+}
+
+export async function getQuestion(id: string) {
+  const { data } = await supabase
+    .from('questions')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (!data) return undefined
+
+  return {
+    id: data.id,
+    question: data.question,
+    subject: data.subject || '',
+    createdAt: data.created_at,
+    result: data.result,
+  }
+}
+
+export async function deleteQuestion(id: string) {
+  await supabase.from('questions').delete().eq('id', id)
+}
