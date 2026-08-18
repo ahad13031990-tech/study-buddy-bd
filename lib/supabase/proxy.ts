@@ -10,6 +10,6 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const pathname = request.nextUrl.pathname
   if (!user && !pathname.startsWith('/api/') && !isPublicAuthRoute(pathname)) return NextResponse.redirect(new URL('/auth/login', request.url))
-  if (user && pathname.startsWith('/auth/') && !pathname.startsWith('/auth/callback') && !pathname.startsWith('/auth/reset-password') && !pathname.startsWith('/auth/error')) return NextResponse.redirect(new URL('/', request.url))
+  if (user && pathname.startsWith('/auth/') && !pathname.startsWith('/auth/callback') && !pathname.startsWith('/auth/reset-password') && !pathname.startsWith('/auth/error')) return NextResponse.redirect(new URL('/app', request.url))
   return response
 }
