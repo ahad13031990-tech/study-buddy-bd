@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const publicAuthRoutes = ['/auth/login', '/auth/sign-up', '/auth/forgot-password', '/auth/reset-password', '/auth/callback', '/auth/error']
+const publicAuthRoutes = ['/auth/login', '/auth/sign-up', '/auth/forgot-password', '/auth/reset-password', '/auth/callback', '/auth/error', '/login', '/signup', '/forgot-password', '/reset-password']
 const isPublicAuthRoute = (pathname: string) => publicAuthRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))
 
 export async function updateSession(request: NextRequest) {

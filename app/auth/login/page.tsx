@@ -35,7 +35,7 @@ export default function LoginPage() {
     if (authError) { setError(authMessage(authError.message)); setLoading(false); return }
     if (rememberMe) window.localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim())
     else window.localStorage.removeItem(REMEMBERED_EMAIL_KEY)
-    window.location.assign('/')
+    window.location.assign('/app')
   }
 
   return <AuthShell title="Welcome back" subtitle="Sign in to continue your StudyBuddy journey.">
